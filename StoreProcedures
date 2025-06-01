@@ -1,0 +1,262 @@
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_doctor`(
+    IN p_id INT,
+    IN p_nombre VARCHAR(100),
+    IN p_especialidad VARCHAR(100),
+    IN p_email VARCHAR(100),
+    IN p_telefono VARCHAR(20)
+)
+BEGIN
+    UPDATE doctors
+    SET nombre = p_nombre,
+        especialidad = p_especialidad,
+        email = p_email,
+        telefono = p_telefono,
+        updated_at = NOW()
+    WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_historial_medico`(
+    IN p_id INT,
+    IN p_paciente_id INT,
+    IN p_doctor_id INT,
+    IN p_fecha DATE,
+    IN p_motivo_consulta TEXT,
+    IN p_diagnostico TEXT,
+    IN p_tratamiento TEXT
+)
+BEGIN
+    UPDATE historiales_medicos
+    SET paciente_id = p_paciente_id,
+        doctor_id = p_doctor_id,
+        fecha = p_fecha,
+        motivo_consulta = p_motivo_consulta,
+        diagnostico = p_diagnostico,
+        tratamiento = p_tratamiento,
+        updated_at = NOW()
+    WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_paciente`(
+    IN p_id BIGINT,
+    IN p_dni VARCHAR(20),
+    IN p_nombre VARCHAR(255),
+    IN p_apellidos VARCHAR(255),
+    IN p_fecha_nacimiento DATE,
+    IN p_direccion VARCHAR(255),
+    IN p_email VARCHAR(255),
+    IN p_telefono VARCHAR(20)
+)
+BEGIN
+    UPDATE pacientes
+    SET dni = p_dni,
+        nombre = p_nombre,
+        apellidos = p_apellidos,
+        fecha_nacimiento = p_fecha_nacimiento,
+        direccion = p_direccion,
+        email = p_email,
+        telefono = p_telefono,
+        updated_at = NOW()
+    WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_buscar_historiales_paciente`(IN p_busqueda VARCHAR(100))
+BEGIN
+    SELECT hm.*, p.nombre AS paciente_nombre, p.apellidos AS paciente_apellido, p.dni,
+           d.nombre AS doctor_nombre, d.apellido AS doctor_apellido
+    FROM historiales_medicos hm
+    INNER JOIN pacientes p ON hm.paciente_id = p.id
+    INNER JOIN doctors d ON hm.doctor_id = d.id
+    WHERE p.nombre LIKE CONCAT('%', p_busqueda, '%')
+       OR p.apellidos LIKE CONCAT('%', p_busqueda, '%')
+       OR p.dni LIKE CONCAT('%', p_busqueda, '%');
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_cambiar_estado_cita`(
+    IN p_id INT,
+    IN p_estado VARCHAR(20)
+)
+BEGIN
+    UPDATE citas
+    SET estado = p_estado
+    WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_crear_cita`(
+    IN p_paciente_id BIGINT,
+    IN p_doctor_id BIGINT,
+    IN p_fecha DATE,
+    IN p_hora TIME,
+    IN p_motivo TEXT,
+    IN p_estado VARCHAR(50)
+)
+BEGIN
+    INSERT INTO citas (paciente_id, doctor_id, fecha, hora, motivo, estado, created_at, updated_at)
+    VALUES (p_paciente_id, p_doctor_id, p_fecha, p_hora, p_motivo, p_estado, NOW(), NOW());
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_crear_doctor`(
+    IN p_nombre VARCHAR(100),
+    IN p_especialidad VARCHAR(100),
+    IN p_email VARCHAR(100),
+    IN p_telefono VARCHAR(20)
+)
+BEGIN
+    INSERT INTO doctors (nombre, especialidad, email, telefono, created_at, updated_at)
+    VALUES (p_nombre, p_especialidad, p_email, p_telefono, NOW(), NOW());
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_crear_historial_medico`(IN `p_paciente_id` INT, IN `p_doctor_id` INT, IN `p_fecha` DATE, IN `p_motivo_consulta` VARCHAR(255), IN `p_diagnostico` TEXT, IN `p_tratamiento` TEXT)
+BEGIN
+    INSERT INTO historiales_medicos (paciente_id, doctor_id, fecha, motivo_consulta, diagnostico, tratamiento, created_at, updated_at)
+    VALUES (p_paciente_id, p_doctor_id, p_fecha, p_motivo_consulta, p_diagnostico, p_tratamiento, NOW(), NOW());
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_doctor`(IN p_id INT)
+BEGIN
+    DELETE FROM doctors WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_historial_medico`(IN p_id INT)
+BEGIN
+    DELETE FROM historiales_medicos WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_paciente`(IN p_id BIGINT)
+BEGIN
+    DELETE FROM pacientes WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_historiales_por_paciente`(IN p_paciente_id BIGINT)
+BEGIN
+    SELECT hm.*, 
+           p.nombre AS paciente_nombre, p.apellidos AS paciente_apellido, p.dni,
+           d.nombre AS doctor_nombre, d.apellido AS doctor_apellido
+    FROM historiales_medicos hm
+    INNER JOIN pacientes p ON hm.paciente_id = p.id
+    INNER JOIN doctors d ON hm.doctor_id = d.id
+    WHERE hm.paciente_id = p_paciente_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_insertar_paciente`(
+    IN p_dni VARCHAR(20),
+    IN p_nombre VARCHAR(100),
+    IN p_apellidos VARCHAR(100),
+    IN p_fecha_nacimiento DATE,
+    IN p_direccion VARCHAR(255),
+    IN p_email VARCHAR(100),
+    IN p_telefono VARCHAR(20)
+)
+BEGIN
+    INSERT INTO pacientes (dni, nombre, apellidos, fecha_nacimiento, direccion, email, telefono, created_at, updated_at)
+    VALUES (p_dni, p_nombre, p_apellidos, p_fecha_nacimiento, p_direccion, p_email, p_telefono, NOW(), NOW());
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_citas`()
+BEGIN
+    SELECT
+        c.id,
+        p.nombre AS paciente_nombre,
+        p.apellidos AS paciente_apellidos,
+        d.nombre AS doctor_nombre,
+        d.apellido AS doctor_apellido,
+        c.fecha,
+        c.hora,
+        c.motivo,
+        c.estado
+    FROM citas c
+    INNER JOIN pacientes p ON c.paciente_id = p.id
+    INNER JOIN doctors d ON c.doctor_id = d.id
+    ORDER BY c.fecha DESC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_doctores`()
+BEGIN
+    SELECT id, nombre, especialidad, email, telefono FROM doctors;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_historiales_medicos`()
+BEGIN
+    SELECT 
+        h.id,
+        h.fecha,
+        h.motivo_consulta,
+        h.diagnostico,
+        h.tratamiento,
+        p.nombre AS nombre_paciente,
+        d.nombre AS nombre_doctor
+    FROM historiales_medicos h
+    INNER JOIN pacientes p ON h.paciente_id = p.id
+    INNER JOIN doctors d ON h.doctor_id = d.id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_historiales_paciente`(IN p_paciente_id INT)
+BEGIN
+    SELECT id, paciente_id, fecha, diagnostico, tratamiento
+    FROM historiales_medicos
+    WHERE paciente_id = p_paciente_id
+    ORDER BY fecha DESC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_pacientes`()
+BEGIN
+    SELECT * FROM pacientes ORDER BY created_at DESC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_obtener_doctor`(IN p_id INT)
+BEGIN
+    SELECT id, nombre, especialidad, email, telefono FROM doctors WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_obtener_historial_medico`(IN p_id INT, IN p_paciente_id INT)
+BEGIN
+    SELECT id, paciente_id, fecha, diagnostico, tratamiento
+    FROM historiales_medicos
+    WHERE id = p_id AND paciente_id = p_paciente_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_obtener_paciente`(IN p_id BIGINT)
+BEGIN
+    SELECT * FROM pacientes WHERE id = p_id;
+END$$
+DELIMITER ;

@@ -1,11 +1,12 @@
 <x-app-layout>
-    <div class="py-8">
+    <div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800">Editar Paciente</h2>
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
+
+                <h2 class="text-3xl font-extrabold text-blue-700 dark:text-blue-400 mb-6">✏️ Editar Paciente</h2>
 
                 @if ($errors->any())
-                    <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    <div class="mb-6 p-4 bg-red-100 dark:bg-red-800 border border-red-300 dark:border-red-600 text-red-700 dark:text-red-200 rounded-lg shadow-sm">
                         <ul class="list-disc list-inside text-sm">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -14,61 +15,65 @@
                     </div>
                 @endif
 
-                <form action="{{ route('pacientes.update', $paciente->id) }}" method="POST">
+                <form action="{{ route('pacientes.update', $paciente->id) }}" method="POST" class="space-y-6">
                     @csrf
                     @method('PUT')
 
-                    <!-- DNI -->
-                    <div class="mb-4">
-                        <label for="dni" class="block text-gray-700 font-bold mb-2">DNI:</label>
-                        <input type="text" name="dni" id="dni" value="{{ old('dni', $paciente->dni) }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                    <!-- Campo reutilizable -->
+                    @php
+                        $inputClass = "w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                       bg-white dark:bg-gray-600 text-gray-900 dark:text-white 
+                                       focus:outline-none focus:ring-2 focus:ring-blue-500";
+                        $labelClass = "block font-semibold text-gray-700 dark:text-gray-200 mb-1";
+                    @endphp
+
+                    <div>
+                        <label for="dni" class="{{ $labelClass }}">DNI:</label>
+                        <input type="text" name="dni" id="dni" value="{{ old('dni', $paciente->dni) }}" class="{{ $inputClass }}" required>
                     </div>
 
-                    <!-- Nombre -->
-                    <div class="mb-4">
-                        <label for="nombre" class="block text-gray-700 font-bold mb-2">Nombre:</label>
-                        <input type="text" name="nombre" id="nombre" value="{{ old('nombre', $paciente->nombre) }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                    <div>
+                        <label for="nombre" class="{{ $labelClass }}">Nombre:</label>
+                        <input type="text" name="nombre" id="nombre" value="{{ old('nombre', $paciente->nombre) }}" class="{{ $inputClass }}" required>
                     </div>
 
-                    <!-- Apellidos -->
-                    <div class="mb-4">
-                        <label for="apellidos" class="block text-gray-700 font-bold mb-2">Apellidos:</label>
-                        <input type="text" name="apellidos" id="apellidos" value="{{ old('apellidos', $paciente->apellidos) }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                    <div>
+                        <label for="apellidos" class="{{ $labelClass }}">Apellidos:</label>
+                        <input type="text" name="apellidos" id="apellidos" value="{{ old('apellidos', $paciente->apellidos) }}" class="{{ $inputClass }}" required>
                     </div>
 
-                    <!-- Fecha de Nacimiento -->
-                    <div class="mb-4">
-                        <label for="fecha_nacimiento" class="block text-gray-700 font-bold mb-2">Fecha de Nacimiento:</label>
-                        <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" value="{{ old('fecha_nacimiento', $paciente->fecha_nacimiento) }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                    <div>
+                        <label for="fecha_nacimiento" class="{{ $labelClass }}">Fecha de Nacimiento:</label>
+                        <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" value="{{ old('fecha_nacimiento', $paciente->fecha_nacimiento) }}" class="{{ $inputClass }}" required>
                     </div>
 
-                    <!-- Dirección (opcional) -->
-                    <div class="mb-4">
-                        <label for="direccion" class="block text-gray-700 font-bold mb-2">Dirección:</label>
-                        <input type="text" name="direccion" id="direccion" value="{{ old('direccion', $paciente->direccion) }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <div>
+                        <label for="direccion" class="{{ $labelClass }}">Dirección:</label>
+                        <input type="text" name="direccion" id="direccion" value="{{ old('direccion', $paciente->direccion) }}" class="{{ $inputClass }}">
                     </div>
 
-                    <!-- Teléfono -->
-                    <div class="mb-4">
-                        <label for="telefono" class="block text-gray-700 font-bold mb-2">Teléfono:</label>
-                        <input type="text" name="telefono" id="telefono" value="{{ old('telefono', $paciente->telefono) }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                    <div>
+                        <label for="telefono" class="{{ $labelClass }}">Teléfono:</label>
+                        <input type="text" name="telefono" id="telefono" value="{{ old('telefono', $paciente->telefono) }}" class="{{ $inputClass }}" required>
                     </div>
 
-                    <!-- Email -->
-                    <div class="mb-6">
-                        <label for="email" class="block text-gray-700 font-bold mb-2">Email:</label>
-                        <input type="email" name="email" id="email" value="{{ old('email', $paciente->email) }}" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                    <div>
+                        <label for="email" class="{{ $labelClass }}">Email:</label>
+                        <input type="email" name="email" id="email" value="{{ old('email', $paciente->email) }}" class="{{ $inputClass }}" required>
                     </div>
 
-                    <div class="flex justify-end">
-                        <a href="{{ route('pacientes.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">
+                    <div class="flex justify-end space-x-4 pt-6">
+                        <a href="{{ route('pacientes.index') }}"
+                           class="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition">
                             Cancelar
                         </a>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded">
-                            Actualizar
+                        <button type="submit"
+                                class="bg-blue-600 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded-lg transition">
+                            💾 Actualizar
                         </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>

@@ -4,17 +4,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Paciente;
 
 class PacienteController extends Controller
 {
     /**
      * Mostrar listado de pacientes con paginación usando Stored Procedure.
      */
-    public function index()
+    public function index(Request $request)
     {
         $pacientes = DB::select('CALL sp_listar_pacientes()');
-
-        return view('pacientes.index', ['pacientes' => $pacientes]);
+        $search = $request->input('search');
+        $pacientes = Paciente::when($search, function ($query, $search) {
+            return $query->where('nombre', 'like', "%$search%")
+                         ->orWhere('apellidos', 'like', "%$search%")
+                         ->orWhere('dni', 'like', "%$search%");
+        })->get();
+    
+        return view('pacientes.index', compact('pacientes'));
     }
 
     /**
@@ -40,14 +47,14 @@ class PacienteController extends Controller
             'email' => 'required|email|max:255',
         ]);
 
-        DB::statement('CALL sp_guardar_paciente(?, ?, ?, ?, ?, ?, ?)', [
+        DB::statement('CALL sp_insertar_paciente(?, ?, ?, ?, ?, ?, ?)', [
             $validated['dni'],
             $validated['nombre'],
             $validated['apellidos'],
             $validated['fecha_nacimiento'],
             $validated['direccion'],
-            $validated['telefono'],
             $validated['email'],
+            $validated['telefono'],
         ]);
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente creado correctamente');
@@ -70,16 +77,14 @@ class PacienteController extends Controller
      */
     public function edit($id)
     {
-        $paciente = DB::select('CALL sp_listar_pacientes(?)', [$id]);
-    
+        $paciente = DB::select('CALL sp_obtener_paciente(?)', [$id]);
+
         if (empty($paciente)) {
             return redirect()->route('pacientes.index')->withErrors('Paciente no encontrado.');
         }
-    
-        $paciente = $paciente[0]; // <- Importante para no tener un array sino un objeto
-    
-        return view('pacientes.edit', compact('paciente'));
-    }    
+
+        return view('pacientes.edit', ['paciente' => $paciente[0]]);
+    }  
 
     /**
      * Actualizar paciente usando stored procedure.
@@ -96,7 +101,7 @@ class PacienteController extends Controller
             'telefono' => 'required|string|max:20',
         ]);
 
-        DB::statement('CALL actualizar_paciente(?, ?, ?, ?, ?, ?, ?, ?)', [
+        DB::statement('CALL sp_actualizar_paciente(?, ?, ?, ?, ?, ?, ?, ?)', [
             $id,
             $request->dni,
             $request->nombre,

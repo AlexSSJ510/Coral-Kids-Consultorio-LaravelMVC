@@ -8,6 +8,8 @@ class HistorialMedico extends Model
 {
     use HasFactory;
 
+    protected $table = 'historiales_medicos';
+
     protected $fillable = [
         'paciente_id', 'fecha', 'diagnostico', 'tratamiento'
     ];

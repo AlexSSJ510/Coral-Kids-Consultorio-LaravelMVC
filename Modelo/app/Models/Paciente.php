@@ -18,8 +18,8 @@ class Paciente extends Model
     
     public function historiales()
     {
-        return $this->hasMany(HistorialMedico::class);
-    }
+        return $this->hasMany(HistorialMedico::class, 'paciente_id');
+    }    
 
     public function citas()
     {

@@ -7,21 +7,30 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Paciente;
 use App\Models\Doctor;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class HistorialMedicoController extends Controller
 {
     public function index(Request $request)
     {
+        $buscar = $request->input('buscar');
+    
         $historiales = DB::select('CALL sp_listar_historiales_medicos()');
     
-        // supongamos que no hay búsqueda ni paginación aún...
+        $historiales = collect($historiales);
     
-        // crea un paginador manual para no romper la vista
+        if ($buscar) {
+            $historiales = $historiales->filter(function ($item) use ($buscar) {
+                $buscar = strtolower($buscar);
+                return str_contains(strtolower($item->nombre_paciente), $buscar) ||
+                       str_contains(strtolower($item->nombre_doctor), $buscar);
+            });
+        }
+    
         $page = $request->input('page', 1);
         $perPage = 10;
-        $total = count($historiales);
-        $offset = ($page - 1) * $perPage;
-        $itemsForPage = array_slice($historiales, $offset, $perPage);
+        $total = $historiales->count();
+        $itemsForPage = $historiales->slice(($page - 1) * $perPage, $perPage)->values();
     
         $paginated = new LengthAwarePaginator(
             $itemsForPage,
@@ -34,7 +43,6 @@ class HistorialMedicoController extends Controller
         return view('historiales.index', ['historiales' => $paginated]);
     }    
 
-    // Formulario para crear historial
     public function create($pacienteId = null)
     {
         $pacientes = Paciente::all();
@@ -43,7 +51,6 @@ class HistorialMedicoController extends Controller
         return view('historiales.create', compact('pacientes', 'doctores', 'pacienteId'));
     }
 
-    // Guardar historial
     public function store(Request $request)
     {
         $request->validate([
@@ -67,7 +74,6 @@ class HistorialMedicoController extends Controller
         return redirect()->route('historiales.index')->with('success', 'Historial médico registrado correctamente.');
     }
 
-    // Mostrar formulario de edición
     public function edit($id)
     {
         $historial = DB::select('SELECT * FROM historiales_medicos WHERE id = ?', [$id])[0];
@@ -77,7 +83,6 @@ class HistorialMedicoController extends Controller
         return view('historiales.edit', compact('historial', 'pacientes', 'doctores'));
     }
 
-    // Actualizar historial
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -102,7 +107,6 @@ class HistorialMedicoController extends Controller
         return redirect()->route('historiales.index')->with('success', 'Historial actualizado correctamente.');
     }
 
-    // Eliminar historial
     public function destroy($id)
     {
         DB::statement('CALL sp_eliminar_historial_medico(?)', [$id]);
@@ -112,9 +116,23 @@ class HistorialMedicoController extends Controller
 
     public function verHistorialPorPaciente($id)
     {
-        $historiales = DB::select('CALL sp_historiales_por_paciente(?)', [$id]);
+        $paciente = Paciente::with('historiales')->findOrFail($id);
+        $historiales = $paciente->historiales;
+    
+        return view('historiales.index', compact('paciente', 'historiales'));
+    }    
 
-        return view('historiales.paciente', compact('historiales'));
-    }
-
+    public function descargarPDF($id)
+    {
+        $resultado = DB::select('CALL sp_obtener_historial_medico(?)', [$id]);
+    
+        if (empty($resultado)) {
+            abort(404, 'Historial no encontrado');
+        }
+    
+        $historial = $resultado[0]; // Obtenemos el primer registro (solo uno)
+    
+        $pdf = Pdf::loadView('historiales.reporte_pdf', compact('historial'));
+        return $pdf->stream('historial_' . $historial->id . '.pdf');
+    }    
 }
